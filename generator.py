@@ -1306,23 +1306,24 @@ if __name__ == "__main__":
     live_data = fetch_suno_data()
     
     # We use our high-quality analyzed dataset
-    tracks = VIRTUALLUSER_TRACKS
+    tracks = list(VIRTUALLUSER_TRACKS)
     motifs_meta = MOTIFS_META
     
     # Robust merge logic for live API data (handles list and dict shapes)
     live_tracks = None
-    if isinstance(live_data, list):
-        live_tracks = live_data
-    elif isinstance(live_data, dict):
-        for key in ["items", "clips", "feed"]:
-            if key in live_data and isinstance(live_data[key], list):
-                live_tracks = live_data[key]
-                break
-        if not live_tracks:
-            for val in live_data.values():
-                if isinstance(val, list):
-                    live_tracks = val
+    if live_data:
+        if isinstance(live_data, list):
+            live_tracks = live_data
+        elif isinstance(live_data, dict):
+            for key in ["items", "clips", "feed"]:
+                if key in live_data and isinstance(live_data[key], list):
+                    live_tracks = live_data[key]
                     break
+            if live_tracks is None:
+                for val in live_data.values():
+                    if isinstance(val, list):
+                        live_tracks = val
+                        break
 
     if live_tracks:
         existing_ids = {t["id"] for t in tracks if "id" in t}
@@ -1337,7 +1338,7 @@ if __name__ == "__main__":
                     lyrics = metadata.get("prompt") or metadata.get("lyrics") or ""
                     tags_raw = metadata.get("tags") or ""
                     if isinstance(tags_raw, str):
-                        tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+                        tags = [tag.strip() for tag in tags_raw.split(",") if tag.strip()]
                     elif isinstance(tags_raw, list):
                         tags = tags_raw
                 genre = lt.get("genre") or ", ".join(tags) or "Suno Phonk"
@@ -1350,6 +1351,16 @@ if __name__ == "__main__":
                     if motif_name.lower() in search_text:
                         extracted_motifs.append(motif_name)
 
+                raw_duration = lt.get("duration")
+                if isinstance(raw_duration, (int, float)):
+                    mins = int(raw_duration) // 60
+                    secs = int(raw_duration) % 60
+                    duration_str = f"{mins:02d}:{secs:02d}"
+                elif isinstance(raw_duration, str) and ":" in raw_duration:
+                    duration_str = raw_duration
+                else:
+                    duration_str = "00:00"
+
                 new_track = {
                     "id": lt["id"],
                     "title": title,
@@ -1358,11 +1369,12 @@ if __name__ == "__main__":
                     "tags": tags,
                     "audio_url": audio_url,
                     "video_url": lt.get("video_url") or "",
-                    "duration": lt.get("duration") or "00:00",
+                    "duration": duration_str,
                     "lyrics": lyrics,
                     "motifs": extracted_motifs
                 }
                 tracks.append(new_track)
+                existing_ids.add(lt["id"])
 
     # Generate the Obsidian vault
     generate_obsidian_vault(tracks, motifs_meta, base_dir="archive")
