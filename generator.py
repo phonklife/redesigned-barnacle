@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 import os
-import re
 import json
 import urllib.request
-import urllib.error
 
 # Dataset of virtualluser's Suno songs and recurring motifs
-VIRTUALUSER_TRACKS = [
+VIRTUALLUSER_TRACKS = [
     {
         "id": "e7a68e8d-8a29-4c8d-b0cf-8471c08e8b6b",
         "title": "Shadows of Memphis",
@@ -344,14 +342,6 @@ Virtualluser is an experimental electronic and phonk music producer. Their sound
 def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
     print(f"Generating web dashboard in: {output_file}")
     
-    # Calculate motif relations for frontend
-    motif_to_tracks = {}
-    for track in tracks:
-        for motif in track["motifs"]:
-            if motif not in motif_to_tracks:
-                motif_to_tracks[motif] = []
-            motif_to_tracks[motif].append(track["title"])
-
     # Prepare JSON data for embedding
     tracks_json = json.dumps(tracks)
     motifs_json = json.dumps(motifs_meta)
@@ -1298,6 +1288,8 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
         }}
 
         // Initialize lists and scripts on load
+        audioPlayer.volume = volumeSlider.value / 100;
+        updateVolumeIcon(audioPlayer.volume);
         renderFilterPills();
         renderTrackList();
         initializeGraph();
@@ -1314,13 +1306,63 @@ if __name__ == "__main__":
     live_data = fetch_suno_data()
     
     # We use our high-quality analyzed dataset
-    tracks = VIRTUALUSER_TRACKS
+    tracks = VIRTUALLUSER_TRACKS
     motifs_meta = MOTIFS_META
     
-    # Optional: Merging logic if we ever get live data in the future
-    if live_data and isinstance(live_data, list):
-        # We could add tracks from live feed if they exist
-        pass
+    # Robust merge logic for live API data (handles list and dict shapes)
+    live_tracks = None
+    if isinstance(live_data, list):
+        live_tracks = live_data
+    elif isinstance(live_data, dict):
+        for key in ["items", "clips", "feed"]:
+            if key in live_data and isinstance(live_data[key], list):
+                live_tracks = live_data[key]
+                break
+        if not live_tracks:
+            for val in live_data.values():
+                if isinstance(val, list):
+                    live_tracks = val
+                    break
+
+    if live_tracks:
+        existing_ids = {t["id"] for t in tracks if "id" in t}
+        for lt in live_tracks:
+            if isinstance(lt, dict) and "id" in lt and lt["id"] not in existing_ids:
+                title = lt.get("title") or lt.get("name") or "Untitled Track"
+                audio_url = lt.get("audio_url") or lt.get("audio") or ""
+                metadata = lt.get("metadata") or {}
+                lyrics = ""
+                tags = []
+                if isinstance(metadata, dict):
+                    lyrics = metadata.get("prompt") or metadata.get("lyrics") or ""
+                    tags_raw = metadata.get("tags") or ""
+                    if isinstance(tags_raw, str):
+                        tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+                    elif isinstance(tags_raw, list):
+                        tags = tags_raw
+                genre = lt.get("genre") or ", ".join(tags) or "Suno Phonk"
+                
+                # Check for motifs in title, genre, description, or lyrics
+                # and extract them based on matching keys in MOTIFS_META
+                extracted_motifs = []
+                search_text = f"{title} {genre} {lt.get('description', '')} {lyrics}".lower()
+                for motif_name in motifs_meta.keys():
+                    if motif_name.lower() in search_text:
+                        extracted_motifs.append(motif_name)
+
+                new_track = {
+                    "id": lt["id"],
+                    "title": title,
+                    "genre": genre,
+                    "description": lt.get("description") or "Imported from live Suno feed.",
+                    "tags": tags,
+                    "audio_url": audio_url,
+                    "video_url": lt.get("video_url") or "",
+                    "duration": lt.get("duration") or "00:00",
+                    "lyrics": lyrics,
+                    "motifs": extracted_motifs
+                }
+                tracks.append(new_track)
 
     # Generate the Obsidian vault
     generate_obsidian_vault(tracks, motifs_meta, base_dir="archive")
