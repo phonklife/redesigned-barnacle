@@ -1361,7 +1361,7 @@ if __name__ == "__main__":
                     raw_duration = raw_duration.strip()
                     if ":" in raw_duration:
                         try:
-                            parts = [int(p) for p in raw_duration.split(":")]
+                            parts = [int(float(p)) for p in raw_duration.split(":")]
                             total_secs = 0
                             for idx, part in enumerate(reversed(parts)):
                                 total_secs += part * (60 ** idx)
