@@ -1362,15 +1362,11 @@ if __name__ == "__main__":
                     if ":" in raw_duration:
                         try:
                             parts = [int(p) for p in raw_duration.split(":")]
-                            if len(parts) == 1:
-                                mins = 0
-                                secs = parts[0]
-                            elif len(parts) == 2:
-                                mins = parts[0]
-                                secs = parts[1]
-                            else:
-                                mins = parts[-3] * 60 + parts[-2]
-                                secs = parts[-1]
+                            total_secs = 0
+                            for idx, part in enumerate(reversed(parts)):
+                                total_secs += part * (60 ** idx)
+                            mins = total_secs // 60
+                            secs = total_secs % 60
                             duration_str = f"{mins:02d}:{secs:02d}"
                         except ValueError:
                             duration_str = "00:00"
