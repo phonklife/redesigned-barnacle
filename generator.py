@@ -1354,17 +1354,19 @@ if __name__ == "__main__":
 
                 raw_duration = lt.get("duration")
                 if isinstance(raw_duration, (int, float)):
-                    mins = int(raw_duration) // 60
-                    secs = int(raw_duration) % 60
+                    total_secs = int(round(raw_duration))
+                    mins = total_secs // 60
+                    secs = total_secs % 60
                     duration_str = f"{mins:02d}:{secs:02d}"
                 elif isinstance(raw_duration, str):
                     raw_duration = raw_duration.strip()
                     if ":" in raw_duration:
                         try:
-                            parts = [int(float(p)) for p in raw_duration.split(":")]
-                            total_secs = 0
+                            parts = [float(p) for p in raw_duration.split(":")]
+                            total_secs_float = 0.0
                             for idx, part in enumerate(reversed(parts)):
-                                total_secs += part * (60 ** idx)
+                                total_secs_float += part * (60 ** idx)
+                            total_secs = int(round(total_secs_float))
                             mins = total_secs // 60
                             secs = total_secs % 60
                             duration_str = f"{mins:02d}:{secs:02d}"
@@ -1373,8 +1375,9 @@ if __name__ == "__main__":
                     else:
                         try:
                             val = float(raw_duration)
-                            mins = int(val) // 60
-                            secs = int(val) % 60
+                            total_secs = int(round(val))
+                            mins = total_secs // 60
+                            secs = total_secs % 60
                             duration_str = f"{mins:02d}:{secs:02d}"
                         except ValueError:
                             duration_str = "00:00"
