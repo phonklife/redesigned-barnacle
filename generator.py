@@ -1369,7 +1369,7 @@ if __name__ == "__main__":
                                 mins = parts[0]
                                 secs = parts[1]
                             else:
-                                mins = parts[-2] + parts[-3] * 60
+                                mins = parts[-3] * 60 + parts[-2]
                                 secs = parts[-1]
                             duration_str = f"{mins:02d}:{secs:02d}"
                         except ValueError:
