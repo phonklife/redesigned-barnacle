@@ -940,6 +940,8 @@
         }
 
         // Initialize lists and scripts on load
+        audioPlayer.volume = volumeSlider.value / 100;
+        updateVolumeIcon(audioPlayer.volume);
         renderFilterPills();
         renderTrackList();
         initializeGraph();
