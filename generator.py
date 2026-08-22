@@ -1357,21 +1357,31 @@ if __name__ == "__main__":
                     mins = int(raw_duration) // 60
                     secs = int(raw_duration) % 60
                     duration_str = f"{mins:02d}:{secs:02d}"
-                elif isinstance(raw_duration, str) and ":" in raw_duration:
-                    try:
-                        parts = [int(p) for p in raw_duration.split(":")]
-                        if len(parts) == 1:
-                            mins = 0
-                            secs = parts[0]
-                        elif len(parts) == 2:
-                            mins = parts[0]
-                            secs = parts[1]
-                        else:
-                            mins = parts[-2] + parts[-3] * 60
-                            secs = parts[-1]
-                        duration_str = f"{mins:02d}:{secs:02d}"
-                    except ValueError:
-                        duration_str = "00:00"
+                elif isinstance(raw_duration, str):
+                    raw_duration = raw_duration.strip()
+                    if ":" in raw_duration:
+                        try:
+                            parts = [int(p) for p in raw_duration.split(":")]
+                            if len(parts) == 1:
+                                mins = 0
+                                secs = parts[0]
+                            elif len(parts) == 2:
+                                mins = parts[0]
+                                secs = parts[1]
+                            else:
+                                mins = parts[-2] + parts[-3] * 60
+                                secs = parts[-1]
+                            duration_str = f"{mins:02d}:{secs:02d}"
+                        except ValueError:
+                            duration_str = "00:00"
+                    else:
+                        try:
+                            val = float(raw_duration)
+                            mins = int(val) // 60
+                            secs = int(val) % 60
+                            duration_str = f"{mins:02d}:{secs:02d}"
+                        except ValueError:
+                            duration_str = "00:00"
                 else:
                     duration_str = "00:00"
 
