@@ -1348,8 +1348,8 @@ if __name__ == "__main__":
                 # and extract them based on matching keys in MOTIFS_META
                 extracted_motifs = []
                 search_text = f"{title} {genre} {lt.get('description', '')} {lyrics}".lower()
-                for l_motif, motif_name in lowercased_motifs.items():
-                    if l_motif in search_text:
+                for lower_motif, motif_name in lowercased_motifs.items():
+                    if lower_motif in search_text:
                         extracted_motifs.append(motif_name)
 
                 raw_duration = lt.get("duration")
