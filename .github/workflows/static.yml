@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Run generator script
+        run: python3 generator.py
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
