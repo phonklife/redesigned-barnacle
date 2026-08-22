@@ -1327,6 +1327,7 @@ if __name__ == "__main__":
 
     if live_tracks:
         existing_ids = {t["id"] for t in tracks if "id" in t}
+        lowercased_motifs = {name.lower(): name for name in motifs_meta.keys()}
         for lt in live_tracks:
             if isinstance(lt, dict) and "id" in lt and lt["id"] not in existing_ids:
                 title = lt.get("title") or lt.get("name") or "Untitled Track"
@@ -1347,8 +1348,8 @@ if __name__ == "__main__":
                 # and extract them based on matching keys in MOTIFS_META
                 extracted_motifs = []
                 search_text = f"{title} {genre} {lt.get('description', '')} {lyrics}".lower()
-                for motif_name in motifs_meta.keys():
-                    if motif_name.lower() in search_text:
+                for l_motif, motif_name in lowercased_motifs.items():
+                    if l_motif in search_text:
                         extracted_motifs.append(motif_name)
 
                 raw_duration = lt.get("duration")
