@@ -163,6 +163,29 @@ def fetch_suno_data():
         print("Using the built-in, high-quality analyzed Suno-Archive for virtualluser.")
         return None
 
+def is_track_list(val):
+    """Checks if the value is a list containing dictionaries that look like tracks."""
+    if not isinstance(val, list) or not val:
+        return False
+    first_item = val[0]
+    return isinstance(first_item, dict) and ("id" in first_item or "title" in first_item)
+
+def format_duration(duration_raw):
+    """Formats a duration value (float, int, or string) to MM:SS."""
+    if isinstance(duration_raw, str):
+        try:
+            duration_raw = float(duration_raw)
+        except ValueError:
+            if ":" in duration_raw:
+                return duration_raw
+            return "00:00"
+
+    if isinstance(duration_raw, (int, float)):
+        mins = int(duration_raw // 60)
+        secs = int(duration_raw % 60)
+        return f"{mins:02d}:{secs:02d}"
+    return "00:00"
+
 def generate_obsidian_canvas(tracks, motif_to_tracks, base_dir):
     canvas_path = os.path.join(base_dir, "virtualluser_music_map.canvas")
     
@@ -1306,7 +1329,7 @@ if __name__ == "__main__":
     live_data = fetch_suno_data()
     
     # We use our high-quality analyzed dataset
-    tracks = VIRTUALLUSER_TRACKS
+    tracks = [t.copy() for t in VIRTUALLUSER_TRACKS]
     motifs_meta = MOTIFS_META
     
     # Robust merge logic for live API data (handles list and dict shapes)
@@ -1316,16 +1339,17 @@ if __name__ == "__main__":
     elif isinstance(live_data, dict):
         for key in ["items", "clips", "feed"]:
             if key in live_data and isinstance(live_data[key], list):
-                live_tracks = live_data[key]
+                live_tracks = list(live_data[key])
                 break
-        if not live_tracks:
+        if live_tracks is None:
             for val in live_data.values():
-                if isinstance(val, list):
-                    live_tracks = val
+                if is_track_list(val):
+                    live_tracks = list(val)
                     break
 
     if live_tracks:
-        existing_ids = {t["id"] for t in tracks if "id" in t}
+        existing_ids = {track_item["id"] for track_item in tracks if "id" in track_item}
+        lowercased_motifs = {m.lower(): m for m in motifs_meta.keys()}
         for lt in live_tracks:
             if isinstance(lt, dict) and "id" in lt and lt["id"] not in existing_ids:
                 title = lt.get("title") or lt.get("name") or "Untitled Track"
@@ -1337,7 +1361,7 @@ if __name__ == "__main__":
                     lyrics = metadata.get("prompt") or metadata.get("lyrics") or ""
                     tags_raw = metadata.get("tags") or ""
                     if isinstance(tags_raw, str):
-                        tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+                        tags = [tag_val.strip() for tag_val in tags_raw.split(",") if tag_val.strip()]
                     elif isinstance(tags_raw, list):
                         tags = tags_raw
                 genre = lt.get("genre") or ", ".join(tags) or "Suno Phonk"
@@ -1346,9 +1370,11 @@ if __name__ == "__main__":
                 # and extract them based on matching keys in MOTIFS_META
                 extracted_motifs = []
                 search_text = f"{title} {genre} {lt.get('description', '')} {lyrics}".lower()
-                for motif_name in motifs_meta.keys():
-                    if motif_name.lower() in search_text:
+                for lower_motif, motif_name in lowercased_motifs.items():
+                    if lower_motif in search_text:
                         extracted_motifs.append(motif_name)
+
+                duration = format_duration(lt.get("duration"))
 
                 new_track = {
                     "id": lt["id"],
@@ -1358,11 +1384,12 @@ if __name__ == "__main__":
                     "tags": tags,
                     "audio_url": audio_url,
                     "video_url": lt.get("video_url") or "",
-                    "duration": lt.get("duration") or "00:00",
+                    "duration": duration,
                     "lyrics": lyrics,
                     "motifs": extracted_motifs
                 }
                 tracks.append(new_track)
+                existing_ids.add(lt["id"])
 
     # Generate the Obsidian vault
     generate_obsidian_vault(tracks, motifs_meta, base_dir="archive")
