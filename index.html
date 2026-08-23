@@ -9,62 +9,345 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        :root {
+            --bg: #08090d;
+            --bg-elevated: rgba(12, 13, 18, 0.84);
+            --panel: rgba(15, 17, 23, 0.92);
+            --panel-soft: rgba(18, 20, 28, 0.74);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text: #f5f5f7;
+            --muted: #a1a1aa;
+            --muted-strong: #d4d4d8;
+            --accent: #b47cff;
+            --accent-strong: #f472b6;
+            --good: #88f0c2;
+            --shadow: 0 30px 60px rgba(0, 0, 0, 0.38);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #07080d;
+            background:
+                radial-gradient(circle at top left, rgba(180, 124, 255, 0.18), transparent 38%),
+                radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.12), transparent 32%),
+                var(--bg);
+            color: var(--text);
         }
+
+        .site-shell {
+            min-height: 100vh;
+            background: linear-gradient(180deg, rgba(8, 9, 13, 0.88), rgba(8, 9, 13, 1));
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(18px);
+            background: rgba(9, 10, 14, 0.72);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .site-header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            box-shadow: 0 12px 25px rgba(180, 124, 255, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .brand-copy h1 {
+            font-size: 0.9rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            background: linear-gradient(90deg, #f5f5f7, #d8b4fe, #f9a8d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-copy p {
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 0.03em;
+        }
+
+        .header-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--muted-strong);
+            font-size: 0.78rem;
+            transition: all 0.2s ease;
+        }
+
+        .header-pill:hover {
+            border-color: rgba(180, 124, 255, 0.4);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .page-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 24px 42px;
+        }
+
+        .hero-panel {
+            background: linear-gradient(180deg, rgba(16, 18, 24, 0.9), rgba(12, 13, 18, 0.75));
+            border: 1px solid var(--panel-border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 24px;
+            padding: 28px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-panel::before {
+            content: "";
+            position: absolute;
+            inset: auto -100px -120px auto;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(180,124,255,.18), transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(180, 124, 255, 0.25);
+            background: rgba(180, 124, 255, 0.07);
+            color: #e2d6ff;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .hero-copy h2 {
+            font-size: clamp(2.2rem, 3vw, 4rem);
+            line-height: 0.96;
+            letter-spacing: -0.06em;
+            margin: 0 0 16px;
+            font-weight: 800;
+        }
+
+        .hero-copy p {
+            max-width: 640px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .primary-btn, .secondary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            transition: all 0.2s ease;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: white;
+            box-shadow: 0 16px 30px rgba(180,124,255,0.28);
+        }
+
+        .secondary-btn {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--muted-strong);
+        }
+
+        .primary-btn:hover, .secondary-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 14px;
+            align-self: start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card {
+            padding: 18px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.02);
+            min-height: 122px;
+        }
+
+        .stat-card .value {
+            display: block;
+            font-size: clamp(1.7rem, 2vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .stat-card .tag {
+            display: inline-flex;
+            margin-top: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(136, 240, 194, 0.08);
+            color: var(--good);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0f1016;
+            background: rgba(255,255,255,0.03);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #27273a;
+            background: rgba(180, 124, 255, 0.4);
             border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a855f7;
+            background: rgba(180, 124, 255, 0.7);
         }
         .neon-border {
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.12);
         }
-        .neon-glow-pink {
-            box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+        .neon-glow-pink, .neon-glow-purple {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.28), 0 0 40px rgba(168, 85, 247, 0.18);
         }
-        .neon-glow-purple {
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+
+        @media (max-width: 960px) {
+            .hero-panel {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-<body class="text-zinc-100 flex flex-col min-h-screen">
+<body class="site-shell text-zinc-100 flex flex-col min-h-screen">
 
     <!-- Header -->
-    <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="p-2 bg-purple-600 rounded-lg text-white animate-pulse">
-                <i data-lucide="music"></i>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="flex items-center gap-3">
+                <div class="brand-mark">
+                    <i data-lucide="music" class="w-4 h-4"></i>
+                </div>
+                <div class="brand-copy">
+                    <h1>Suno-Archive-Automator</h1>
+                    <p>virtualluser / musical system atlas</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-                    Suno-Archive-Automator
-                </h1>
-                <p class="text-xs text-zinc-400">Zautomatyzowane Archiwum Motywów virtualluser</p>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/phonklife/redesigned-barnacle" target="_blank" class="header-pill">
+                    <i data-lucide="github" class="w-4 h-4"></i> Repository
+                </a>
             </div>
-        </div>
-        <div class="flex items-center gap-4">
-            <a href="https://github.com/phonklife/redesigned-barnacle" target="_blank" class="text-zinc-400 hover:text-white transition flex items-center gap-2 text-sm bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg">
-                <i data-lucide="github" class="w-4 h-4"></i> Repository
-            </a>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="page-shell">
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <span class="eyebrow"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> minimal flow system</span>
+                <h2>Sound, structure, and story in one clean archive.</h2>
+                <p>
+                    A modern music research interface for virtualluser — built as a minimalist visual dashboard that keeps the energy of the sound while staying calm, premium, and focused.
+                </p>
+                <div class="hero-actions">
+                    <a href="#track-list" class="primary-btn"><i data-lucide="play" class="w-4 h-4"></i> Explore archive</a>
+                    <a href="#network-canvas" class="secondary-btn"><i data-lucide="network" class="w-4 h-4"></i> Open map</a>
+                </div>
+            </div>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <span class="value">10</span>
+                    <span class="label">tracks</span>
+                    <span class="tag">live catalog</span>
+                </div>
+                <div class="stat-card">
+                    <span class="value">13</span>
+                    <span class="label">motifs</span>
+                    <span class="tag">mapped</span>
+                </div>
+                <div class="stat-card">
+                    <span class="value">∞</span>
+                    <span class="label">flow</span>
+                    <span class="tag">minimal</span>
+                </div>
+                <div class="stat-card">
+                    <span class="value">24/7</span>
+                    <span class="label">archive</span>
+                    <span class="tag">online</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- Left Column: Player & Track List (5 cols) -->
-        <div class="lg:col-span-5 flex flex-col gap-6 h-[calc(100vh-140px)] min-h-[500px]">
+        <div class="lg:col-span-5 flex flex-col gap-6 min-h-[500px] lg:min-h-[620px]">
             
             <!-- Music Player -->
             <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden neon-border">
@@ -150,7 +433,7 @@
         </div>
 
         <!-- Right Column: Canvas Network Graph (7 cols) -->
-        <div class="lg:col-span-7 flex flex-col gap-6 h-[calc(100vh-140px)] min-h-[500px]">
+        <div class="lg:col-span-7 flex flex-col gap-6 min-h-[500px] lg:min-h-[620px]">
             
             <!-- Map Card -->
             <div class="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex-grow flex flex-col gap-3 min-h-0 relative">
