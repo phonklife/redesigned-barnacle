@@ -36,7 +36,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
-          enablement: true
+          # Do not force-enable GitHub Pages from the workflow: the token in this repo
+          # cannot create a Pages site and fails with "Resource not accessible by integration".
+          # The Pages site must be enabled in the repository settings before deployment.
+          enablement: false
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
