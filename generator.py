@@ -826,14 +826,26 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
             }});
         }}
 
+        function trackMatchesTextQuery(track, query) {{
+            if (!query) return true;
+            const normalizedQuery = query.toLowerCase();
+            const searchableValues = [
+                track.title,
+                track.genre,
+                track.description,
+                track.lyrics,
+                ...(track.tags || []),
+                ...(track.motifs || [])
+            ].filter(value => value != null && value !== '');
+
+            return searchableValues.some(value => String(value).toLowerCase().includes(normalizedQuery));
+        }}
+
         function renderTrackList() {{
             trackListContainer.innerHTML = '';
             
             const filteredTracks = tracks.map((t, idx) => ({{ ...t, originalIndex: idx }})).filter(track => {{
-                const matchesText = track.title.toLowerCase().includes(textSearchQuery.toLowerCase()) || 
-                                    track.genre.toLowerCase().includes(textSearchQuery.toLowerCase()) || 
-                                    track.lyrics.toLowerCase().includes(textSearchQuery.toLowerCase());
-                
+                const matchesText = trackMatchesTextQuery(track, textSearchQuery);
                 const matchesMotif = !selectedMotifFilter || track.motifs.includes(selectedMotifFilter);
                 const matchesGenre = !selectedGenreFilter || track.genre.startsWith(selectedGenreFilter);
                 
@@ -1025,12 +1037,10 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
                     const query = textSearchQuery.toLowerCase();
                     if (node.type === 'track') {{
                         const track = tracks[node.trackIndex];
-                        active = track.title.toLowerCase().includes(query) || 
-                                 track.genre.toLowerCase().includes(query) || 
-                                 track.lyrics.toLowerCase().includes(query);
+                        active = trackMatchesTextQuery(track, query);
                     }} else {{
                         active = node.label.toLowerCase().includes(query) || 
-                                 node.description.toLowerCase().includes(query);
+                                 (node.description && node.description.toLowerCase().includes(query));
                     }}
                 }}
                 
