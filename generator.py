@@ -830,9 +830,16 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
             trackListContainer.innerHTML = '';
             
             const filteredTracks = tracks.map((t, idx) => ({{ ...t, originalIndex: idx }})).filter(track => {{
-                const matchesText = track.title.toLowerCase().includes(textSearchQuery.toLowerCase()) || 
-                                    track.genre.toLowerCase().includes(textSearchQuery.toLowerCase()) || 
-                                    track.lyrics.toLowerCase().includes(textSearchQuery.toLowerCase());
+                const query = textSearchQuery.trim().toLowerCase();
+                const searchableText = [
+                    track.title,
+                    track.genre,
+                    track.description,
+                    ...(track.tags || []),
+                    ...(track.motifs || []),
+                    track.lyrics
+                ].join(' ').toLowerCase();
+                const matchesText = !query || searchableText.includes(query);
                 
                 const matchesMotif = !selectedMotifFilter || track.motifs.includes(selectedMotifFilter);
                 const matchesGenre = !selectedGenreFilter || track.genre.startsWith(selectedGenreFilter);
@@ -1022,12 +1029,18 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
                 
                 // Text Search Check
                 if (textSearchQuery) {{
-                    const query = textSearchQuery.toLowerCase();
+                    const query = textSearchQuery.trim().toLowerCase();
                     if (node.type === 'track') {{
                         const track = tracks[node.trackIndex];
-                        active = track.title.toLowerCase().includes(query) || 
-                                 track.genre.toLowerCase().includes(query) || 
-                                 track.lyrics.toLowerCase().includes(query);
+                        const searchableText = [
+                            track.title,
+                            track.genre,
+                            track.description,
+                            ...(track.tags || []),
+                            ...(track.motifs || []),
+                            track.lyrics
+                        ].join(' ').toLowerCase();
+                        active = searchableText.includes(query);
                     }} else {{
                         active = node.label.toLowerCase().includes(query) || 
                                  node.description.toLowerCase().includes(query);
@@ -1114,8 +1127,20 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Musical Motifs in this track:</p>
                 `;
                 
-                // Load motif pills in detail tags
+                // Load tag and motif pills in detail tags
                 detailTags.innerHTML = '';
+                (track.tags || []).forEach(tag => {{
+                    const pill = document.createElement('span');
+                    pill.className = "bg-zinc-850 hover:bg-purple-950/20 hover:text-purple-300 border border-zinc-800 transition text-xs px-2.5 py-1 rounded-lg text-zinc-300 cursor-pointer flex items-center gap-1 select-none";
+                    pill.innerHTML = `🏷️ ${{tag}}`;
+                    pill.onclick = () => {{
+                        textSearchQuery = tag;
+                        searchInput.value = tag;
+                        renderTrackList();
+                        updateGraphHighlights();
+                    }};
+                    detailTags.appendChild(pill);
+                }});
                 track.motifs.forEach(motif => {{
                     const pill = document.createElement('span');
                     pill.className = "bg-zinc-850 hover:bg-pink-950/20 hover:text-pink-300 border border-zinc-800 transition text-xs px-2.5 py-1 rounded-lg text-zinc-300 cursor-pointer flex items-center gap-1 select-none";
