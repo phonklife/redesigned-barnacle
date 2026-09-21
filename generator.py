@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import os
+import re
 import json
 import urllib.request
+import urllib.error
 
 # Dataset of virtualluser's Suno songs and recurring motifs
-VIRTUALLUSER_TRACKS = [
+VIRTUALUSER_TRACKS = [
     {
         "id": "e7a68e8d-8a29-4c8d-b0cf-8471c08e8b6b",
         "title": "Shadows of Memphis",
@@ -342,6 +344,14 @@ Virtualluser is an experimental electronic and phonk music producer. Their sound
 def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
     print(f"Generating web dashboard in: {output_file}")
     
+    # Calculate motif relations for frontend
+    motif_to_tracks = {}
+    for track in tracks:
+        for motif in track["motifs"]:
+            if motif not in motif_to_tracks:
+                motif_to_tracks[motif] = []
+            motif_to_tracks[motif].append(track["title"])
+
     # Prepare JSON data for embedding
     tracks_json = json.dumps(tracks)
     motifs_json = json.dumps(motifs_meta)
@@ -1288,8 +1298,6 @@ def generate_web_dashboard(tracks, motifs_meta, output_file="index.html"):
         }}
 
         // Initialize lists and scripts on load
-        audioPlayer.volume = volumeSlider.value / 100;
-        updateVolumeIcon(audioPlayer.volume);
         renderFilterPills();
         renderTrackList();
         initializeGraph();
@@ -1306,98 +1314,13 @@ if __name__ == "__main__":
     live_data = fetch_suno_data()
     
     # We use our high-quality analyzed dataset
-    tracks = list(VIRTUALLUSER_TRACKS)
+    tracks = VIRTUALUSER_TRACKS
     motifs_meta = MOTIFS_META
     
-    # Robust merge logic for live API data (handles list and dict shapes)
-    live_tracks = None
-    if live_data:
-        if isinstance(live_data, list):
-            live_tracks = live_data
-        elif isinstance(live_data, dict):
-            for key in ["items", "clips", "feed"]:
-                if key in live_data and isinstance(live_data[key], list):
-                    live_tracks = live_data[key]
-                    break
-            if live_tracks is None:
-                for val in live_data.values():
-                    if isinstance(val, list):
-                        live_tracks = val
-                        break
-
-    if live_tracks:
-        existing_ids = {t["id"] for t in tracks if "id" in t}
-        lowercased_motifs = {name.lower(): name for name in motifs_meta.keys()}
-        for lt in live_tracks:
-            if isinstance(lt, dict) and "id" in lt and lt["id"] not in existing_ids:
-                title = lt.get("title") or lt.get("name") or "Untitled Track"
-                audio_url = lt.get("audio_url") or lt.get("audio") or ""
-                metadata = lt.get("metadata") or {}
-                lyrics = ""
-                tags = []
-                if isinstance(metadata, dict):
-                    lyrics = metadata.get("prompt") or metadata.get("lyrics") or ""
-                    tags_raw = metadata.get("tags") or ""
-                    if isinstance(tags_raw, str):
-                        tags = [tag.strip() for tag in tags_raw.split(",") if tag.strip()]
-                    elif isinstance(tags_raw, list):
-                        tags = tags_raw
-                genre = lt.get("genre") or ", ".join(tags) or "Suno Phonk"
-                
-                # Check for motifs in title, genre, description, or lyrics
-                # and extract them based on matching keys in MOTIFS_META
-                extracted_motifs = []
-                search_text = f"{title} {genre} {lt.get('description', '')} {lyrics}".lower()
-                for lower_motif, motif_name in lowercased_motifs.items():
-                    if lower_motif in search_text:
-                        extracted_motifs.append(motif_name)
-
-                raw_duration = lt.get("duration")
-                if isinstance(raw_duration, (int, float)):
-                    total_secs = int(round(raw_duration))
-                    mins = total_secs // 60
-                    secs = total_secs % 60
-                    duration_str = f"{mins:02d}:{secs:02d}"
-                elif isinstance(raw_duration, str):
-                    raw_duration = raw_duration.strip()
-                    if ":" in raw_duration:
-                        try:
-                            parts = [float(p) for p in raw_duration.split(":")]
-                            total_secs_float = 0.0
-                            for idx, part in enumerate(reversed(parts)):
-                                total_secs_float += part * (60 ** idx)
-                            total_secs = int(round(total_secs_float))
-                            mins = total_secs // 60
-                            secs = total_secs % 60
-                            duration_str = f"{mins:02d}:{secs:02d}"
-                        except ValueError:
-                            duration_str = "00:00"
-                    else:
-                        try:
-                            val = float(raw_duration)
-                            total_secs = int(round(val))
-                            mins = total_secs // 60
-                            secs = total_secs % 60
-                            duration_str = f"{mins:02d}:{secs:02d}"
-                        except ValueError:
-                            duration_str = "00:00"
-                else:
-                    duration_str = "00:00"
-
-                new_track = {
-                    "id": lt["id"],
-                    "title": title,
-                    "genre": genre,
-                    "description": lt.get("description") or "Imported from live Suno feed.",
-                    "tags": tags,
-                    "audio_url": audio_url,
-                    "video_url": lt.get("video_url") or "",
-                    "duration": duration_str,
-                    "lyrics": lyrics,
-                    "motifs": extracted_motifs
-                }
-                tracks.append(new_track)
-                existing_ids.add(lt["id"])
+    # Optional: Merging logic if we ever get live data in the future
+    if live_data and isinstance(live_data, list):
+        # We could add tracks from live feed if they exist
+        pass
 
     # Generate the Obsidian vault
     generate_obsidian_vault(tracks, motifs_meta, base_dir="archive")
